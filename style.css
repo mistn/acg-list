@@ -238,6 +238,7 @@ body {
     border-radius: 12px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
     margin-bottom: 30px;
+    touch-action: pan-y; /* 禁用双指放大，只允许垂直滚动 */
 }
 
 /* 功能按钮容器 */
