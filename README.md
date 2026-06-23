@@ -40,7 +40,11 @@ npx live-server
 ├── style.css           # 样式文件
 ├── script.js           # 主脚本
 ├── images.json         # 图片数据源
-├── favicon.ico         # 网站图标
+├── assets/             # 静态资源
+│   ├── favicon.ico
+│   ├── favicon-32x32.png
+│   ├── favicon-16x16.png
+│   └── apple-touch-icon.png
 └── README.md           # 说明文档
 ```
 
