@@ -1,12 +1,17 @@
-/* style.css */
+/* ============================================================
+   二次元图片瀑布流 - 样式文件
+   ============================================================ */
+
+/* ==================== 基础样式 ==================== */
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+/* 隐藏根滚动条，保留页面滚动能力 */
 html {
-    /* 隐藏根滚动条，保留页面滚动能力，兼容主流浏览器及 IE/旧版 Edge */
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
@@ -22,7 +27,8 @@ body {
     background-color: #f0f0f0;
 }
 
-/* 加载动画 */
+/* ==================== 加载动画 ==================== */
+
 .loading {
     position: fixed;
     top: 0;
@@ -59,38 +65,37 @@ body {
 }
 
 @keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
+    to { transform: rotate(360deg); }
 }
 
-/* 瀑布流容器 - 改为 Flex 布局 */
+/* ==================== 瀑布流布局 ==================== */
+
 .container {
     display: flex;
-    align-items: flex-start; /* 使得各列高度独立，不被拉伸 */
-    gap: 15px; /* 列间距 */
+    align-items: flex-start;
+    gap: 15px;
     padding: 15px;
     max-width: 1400px;
     margin: 0 auto;
 }
 
-/* 单独的一列 */
 .column {
     display: flex;
     flex-direction: column;
-    gap: 15px; /* 图片上下间距 */
-    flex: 1; /* 均匀平分宽度 */
-    min-width: 0; /* 防止内部图片内容过宽撑破列 */
+    gap: 15px;
+    flex: 1;
+    min-width: 0;
 }
 
-/* 移除之前的 break-inside 和 margin-bottom（现由 flex gap 控制） */
+/* ==================== 图片卡片 ==================== */
+
 .image-item {
     position: relative;
-    background-color: #ddd; /* 加载前的占位背景色 */
+    background-color: #ddd;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    min-height: 100px; /* 避免没加载时太扁导致视口判定失误 */
+    min-height: 100px;
     transition: transform 0.45s ease, box-shadow 0.45s ease;
 }
 
@@ -100,6 +105,7 @@ body {
     box-shadow: 0 18px 35px rgba(0, 0, 0, 0.18);
 }
 
+/* 鼠标跟随光效 */
 .image-glow {
     position: absolute;
     left: 50%;
@@ -121,15 +127,21 @@ body {
     opacity: 1;
 }
 
-/* box为图片的大小：宽度100%，高度自适应 */
+/* 图片样式 */
 .image-item img {
     position: relative;
     z-index: 0;
     width: 100%;
     height: auto;
     display: block;
-    opacity: 0; /* 初始透明，等待加载完成后显示 */
-    transition: opacity 0.4s ease-in-out, transform 0.45s ease, filter 0.45s ease; /* 渐显动画 */
+    opacity: 0;
+    transition: opacity 0.4s ease-in-out, transform 0.45s ease, filter 0.45s ease;
+}
+
+.image-item:hover img,
+.image-item:focus-within img {
+    transform: scale(1.03);
+    filter: brightness(0.9);
 }
 
 /* 图片加载失败占位 */
@@ -156,21 +168,15 @@ body {
     font-size: 14px;
 }
 
-.image-item:hover img,
-.image-item:focus-within img {
-    transform: scale(1.03);
-    filter: brightness(0.9);
-}
-
-/* 底部用于触发无限滚动的哨兵元素 */
+/* 无限滚动哨兵元素 */
 #sentinel {
     height: 20px;
     width: 100%;
 }
 
-/* ========== Lightbox 样式 ========== */
+/* ==================== Lightbox 灯箱 ==================== */
 
-/* Lightbox 容器 */
+/* 灯箱容器 */
 .lightbox {
     display: none;
     position: fixed;
@@ -188,7 +194,7 @@ body {
     justify-content: center;
 }
 
-/* Lightbox 背景遮罩层 */
+/* 背景遮罩层 */
 .lightbox-overlay {
     position: absolute;
     top: 0;
@@ -200,7 +206,7 @@ body {
     z-index: 1;
 }
 
-/* 左右切换按钮 - 固定屏幕两侧 */
+/* 左右切换按钮 - 固定屏幕两侧（桌面端） */
 .lightbox-nav-btn {
     position: fixed;
     top: 50%;
@@ -208,15 +214,10 @@ body {
     z-index: 10;
 }
 
-#prev-btn {
-    left: 20px;
-}
+#prev-btn { left: 20px; }
+#next-btn { right: 20px; }
 
-#next-btn {
-    right: 20px;
-}
-
-/* Lightbox 内容容器 */
+/* 灯箱内容容器 */
 .lightbox-content {
     position: relative;
     z-index: 2;
@@ -229,7 +230,7 @@ body {
     animation: zoomIn 0.3s ease-out;
 }
 
-/* Lightbox 图片 */
+/* 灯箱图片 */
 .lightbox-image {
     max-width: 100%;
     max-height: 85vh;
@@ -239,7 +240,7 @@ body {
     margin-bottom: 30px;
 }
 
-/* 控制按钮容器 */
+/* 功能按钮容器 */
 .lightbox-controls {
     display: flex;
     gap: 20px;
@@ -247,7 +248,8 @@ body {
     align-items: center;
 }
 
-/* 玻璃态按钮 */
+/* ==================== 玻璃态按钮 ==================== */
+
 .glass-btn {
     padding: 12px 28px;
     font-size: 14px;
@@ -256,26 +258,18 @@ body {
     border-radius: 30px;
     color: #fff;
     cursor: pointer;
-    
-    /* iOS 玻璃态效果 */
     background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     border: 1.5px solid rgba(255, 255, 255, 0.25);
-    box-shadow: 
-        inset 0 1px 2px rgba(255, 255, 255, 0.3),
-        0 8px 32px rgba(0, 0, 0, 0.1);
-    
-    /* 过渡动画 */
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.3), 0 8px 32px rgba(0, 0, 0, 0.1);
     transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     transform: translateY(0);
-    
-    /* 防止文本选中 */
     user-select: none;
     -webkit-user-select: none;
 }
 
-/* 箭头按钮特殊样式 - 正圆形 */
+/* 左右箭头按钮 - 圆形 */
 .glass-btn#prev-btn,
 .glass-btn#next-btn {
     width: 48px;
@@ -287,7 +281,7 @@ body {
     justify-content: center;
 }
 
-/* 功能按钮样式 */
+/* 功能按钮 - 圆形 */
 .glass-btn#copy-link-btn,
 .glass-btn#download-btn {
     width: 40px;
@@ -299,24 +293,19 @@ body {
     justify-content: center;
 }
 
-/* 按钮悬停效果 - iOS 液态玻璃动画 */
+/* 按钮悬停效果 */
 .glass-btn:hover {
     background: rgba(255, 255, 255, 0.25);
     border: 1.5px solid rgba(255, 255, 255, 0.35);
-    box-shadow: 
-        inset 0 1px 3px rgba(255, 255, 255, 0.4),
-        0 15px 45px rgba(0, 0, 0, 0.2);
+    box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.4), 0 15px 45px rgba(0, 0, 0, 0.2);
     transform: translateY(-3px);
-    letter-spacing: 0.5px;
 }
 
 /* 按钮按下效果 */
 .glass-btn:active {
     transform: translateY(-1px);
     background: rgba(255, 255, 255, 0.2);
-    box-shadow: 
-        inset 0 1px 2px rgba(255, 255, 255, 0.2),
-        0 5px 20px rgba(0, 0, 0, 0.15);
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.2), 0 5px 20px rgba(0, 0, 0, 0.15);
 }
 
 /* 按钮禁用状态 */
@@ -326,74 +315,39 @@ body {
     transform: none;
 }
 
-/* 动画：淡入 */
+/* ==================== 动画 ==================== */
+
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
-/* 动画：缩放进入 */
 @keyframes zoomIn {
-    from {
-        opacity: 0;
-        transform: scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
 }
 
-/* 关闭按钮（左上角）- 可选 */
-.lightbox-close {
-    position: absolute;
-    top: 20px;
-    right: 30px;
-    font-size: 28px;
-    color: #fff;
-    background: rgba(255, 255, 255, 0.15);
-    border: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    z-index: 3;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1.5px solid rgba(255, 255, 255, 0.25);
-}
+/* ==================== 移动端响应式 ==================== */
 
-.lightbox-close:hover {
-    background: rgba(255, 255, 255, 0.25);
-    transform: scale(1.1);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-}
-
-/* 响应式设计 */
 @media (max-width: 768px) {
+    /* 隐藏鼠标光效 */
     .image-glow {
         display: none;
     }
 
-    /* 移动端隐藏左右按钮 */
+    /* 隐藏左右切换按钮 - 移动端使用滑动切换 */
     .lightbox-nav-btn {
         display: none;
     }
 
+    /* 移动端图片样式 */
     .lightbox-image {
         max-height: 80vh;
         margin-bottom: 0;
         border-radius: 0;
     }
 
+    /* 移动端功能按钮容器 - 固定底部 */
     .lightbox-controls {
         gap: 12px;
         position: fixed;
@@ -405,12 +359,20 @@ body {
         transition: opacity 0.3s ease;
     }
 
+    /* 移动端功能按钮 - 默认隐藏，点击显示 */
+    .lightbox-controls.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    /* 移动端功能按钮尺寸 */
     .glass-btn#copy-link-btn,
     .glass-btn#download-btn {
         width: 44px;
         height: 44px;
     }
 
+    /* 移动端灯箱内容 */
     .lightbox-content {
         max-width: 100%;
         max-height: 100vh;
@@ -418,13 +380,8 @@ body {
     }
 }
 
-/* 隐藏功能按钮状态 - 移动端使用 */
-.lightbox-controls.hidden {
-    opacity: 0;
-    pointer-events: none;
-}
+/* ==================== 返回顶部按钮 ==================== */
 
-/* 返回顶部按钮 */
 .back-to-top {
     position: fixed;
     bottom: 30px;

@@ -4,10 +4,12 @@
 
 // ==================== 配置项 ====================
 const CONFIG = {
-    dataUrl: 'images.json',  // 图片数据源
-    batchSize: 24,           // 每批加载图片数量
-    lazyLoadMargin: '1000px', // 懒加载提前量
-    infiniteScrollMargin: '1500px' // 无限滚动提前量
+    dataUrl: 'images.json',           // 图片数据源
+    batchSize: 24,                    // 每批加载图片数量
+    lazyLoadMargin: '1000px',         // 懒加载提前量
+    infiniteScrollMargin: '1500px',   // 无限滚动提前量
+    swipeThreshold: 50,               // 触摸滑动阈值
+    mobileBreakpoint: 768             // 移动端断点
 };
 
 // ==================== DOM 元素 ====================
@@ -17,6 +19,7 @@ const DOM = {
     lightbox: document.getElementById('lightbox'),
     lightboxImage: document.getElementById('lightbox-image'),
     lightboxOverlay: document.querySelector('.lightbox-overlay'),
+    lightboxControls: document.querySelector('.lightbox-controls'),
     copyLinkBtn: document.getElementById('copy-link-btn'),
     downloadBtn: document.getElementById('download-btn'),
     prevBtn: document.getElementById('prev-btn'),
@@ -25,17 +28,26 @@ const DOM = {
 };
 
 // ==================== 状态变量 ====================
-let state = {
+const state = {
     allImageUrls: [],      // 所有图片 URL
     currentIndex: 0,       // 当前加载到的索引
     currentImageUrl: '',   // 当前 Lightbox 显示的图片 URL
     currentImageIndex: -1, // 当前 Lightbox 显示的图片索引
     colNum: 0,             // 当前列数
     columns: [],           // 列元素数组
-    imageElements: []      // 所有图片 DOM 元素
+    imageElements: [],     // 所有图片 DOM 元素
+    touchStartX: 0,        // 触摸开始 X 坐标
+    touchEndX: 0           // 触摸结束 X 坐标
 };
 
-// ==================== 瀑布流布局 ====================
+// ==================== 工具函数 ====================
+
+/**
+ * 判断是否为移动端
+ */
+function isMobile() {
+    return window.innerWidth <= CONFIG.mobileBreakpoint;
+}
 
 /**
  * 获取当前屏幕宽度对应的列数
@@ -46,6 +58,8 @@ function getColNum() {
     if (window.innerWidth > 500) return 2;
     return 1;
 }
+
+// ==================== 瀑布流布局 ====================
 
 /**
  * 初始化瀑布流列
@@ -122,7 +136,7 @@ function loadMoreImages() {
 /**
  * 创建图片 DOM 元素
  */
-function createImageElement(url, index) {
+function createImageElement(url) {
     const imgDiv = document.createElement('div');
     imgDiv.classList.add('image-item');
 
@@ -232,6 +246,11 @@ function openLightbox(imageUrl, index) {
     DOM.lightbox.classList.add('active');
     document.body.style.overflow = 'hidden';
     updateNavButtons();
+
+    // 移动端：重置功能按钮状态
+    if (isMobile()) {
+        DOM.lightboxControls.classList.remove('hidden');
+    }
 }
 
 /**
@@ -274,14 +293,20 @@ function updateNavButtons() {
     DOM.nextBtn.style.display = state.currentImageIndex < state.allImageUrls.length - 1 ? 'block' : 'none';
 }
 
-// Lightbox 事件监听
+// ==================== Lightbox 事件监听 ====================
+
+// 关闭灯箱
 DOM.lightboxOverlay.addEventListener('click', closeLightbox);
+
+// 左右切换按钮（桌面端）
 DOM.prevBtn.addEventListener('click', showPrevImage);
 DOM.nextBtn.addEventListener('click', showNextImage);
+
+// 功能按钮
 DOM.copyLinkBtn.addEventListener('click', () => copyImageUrl(state.currentImageUrl, DOM.copyLinkBtn));
 DOM.downloadBtn.addEventListener('click', () => downloadImage(state.currentImageUrl));
 
-// 键盘快捷键
+// 键盘快捷键（桌面端）
 document.addEventListener('keydown', (e) => {
     if (!DOM.lightbox.classList.contains('active')) return;
     if (e.key === 'Escape') closeLightbox();
@@ -291,35 +316,33 @@ document.addEventListener('keydown', (e) => {
 
 // ==================== 移动端触摸滑动 ====================
 
-let touchStartX = 0;
-let touchEndX = 0;
-const SWIPE_THRESHOLD = 50; // 滑动阈值
-
 DOM.lightboxImage.addEventListener('touchstart', (e) => {
-    touchStartX = e.changedTouches[0].screenX;
+    state.touchStartX = e.changedTouches[0].screenX;
 }, { passive: true });
 
 DOM.lightboxImage.addEventListener('touchend', (e) => {
-    touchEndX = e.changedTouches[0].screenX;
+    state.touchEndX = e.changedTouches[0].screenX;
     handleSwipe();
 });
 
+/**
+ * 处理触摸滑动
+ */
 function handleSwipe() {
-    const diff = touchStartX - touchEndX;
-    if (Math.abs(diff) < SWIPE_THRESHOLD) return;
+    const diff = state.touchStartX - state.touchEndX;
+    if (Math.abs(diff) < CONFIG.swipeThreshold) return;
     if (diff > 0) {
-        showNextImage(); // 左滑下一张
+        showNextImage(); // 左滑 -> 下一张
     } else {
-        showPrevImage(); // 右滑上一张
+        showPrevImage(); // 右滑 -> 上一张
     }
 }
 
-// ==================== 移动端点击屏幕显示/隐藏功能按钮 ====================
+// ==================== 移动端点击显示/隐藏功能按钮 ====================
 
 DOM.lightboxImage.addEventListener('click', () => {
-    if (window.innerWidth > 768) return; // 只在移动端生效
-    const controls = document.querySelector('.lightbox-controls');
-    controls.classList.toggle('hidden');
+    if (!isMobile()) return;
+    DOM.lightboxControls.classList.toggle('hidden');
 });
 
 // ==================== 鼠标光效 ====================
@@ -351,7 +374,7 @@ function copyImageUrl(imageUrl, button) {
     if (!imageUrl) return;
 
     copyTextToClipboard(imageUrl).then(() => {
-        if (button) showButtonFeedback(button, '✓ 已复制！');
+        if (button) showButtonFeedback(button, '已复制');
     }).catch(() => {
         alert('复制失败，请重试');
     });
@@ -392,13 +415,12 @@ function copyTextToClipboard(text) {
  * 按钮反馈动画
  */
 function showButtonFeedback(button, feedbackText) {
-    const originalText = button.getAttribute('data-original-text') || button.textContent;
-    button.setAttribute('data-original-text', originalText);
-    button.textContent = feedbackText;
+    const originalHTML = button.innerHTML;
+    button.innerHTML = `<span style="font-size: 12px;">${feedbackText}</span>`;
     button.disabled = true;
 
     setTimeout(() => {
-        button.textContent = originalText;
+        button.innerHTML = originalHTML;
         button.disabled = false;
     }, 2000);
 }
@@ -424,9 +446,6 @@ function downloadImage(imageUrl) {
 
 // ==================== 返回顶部 ====================
 
-/**
- * 返回顶部按钮
- */
 DOM.backToTopBtn.addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 });
