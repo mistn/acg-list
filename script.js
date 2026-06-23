@@ -2,11 +2,8 @@
 
 const container = document.getElementById('image-container');
 
-// API URLs
-const apiUrls = [
-    'https://api.yppp.net/pc.php?return=all',
-    'https://api.yppp.net/pe.php?return=all'
-];
+// 数据源：本地 JSON 文件
+const dataUrl = 'images.json';
 
 let allImageUrls = [];
 let currentIndex = 0;
@@ -49,20 +46,15 @@ window.addEventListener('resize', () => {
     }
 });
 
-// Fetch data from APIs and populate the images
+// Fetch data from local JSON file
 async function fetchImages() {
     try {
-        const responses = await Promise.all(apiUrls.map(url => fetch(url)));
-        const dataPromises = responses.map(response => response.text());
-        const allData = await Promise.all(dataPromises);
+        const response = await fetch(dataUrl);
+        const data = await response.json();
 
-        // Split the returned text into image URLs, clean empty lines
-        allImageUrls = allData
-            .flatMap(data => data.split('\n'))
-            .map(url => url.trim())
-            .filter(url => url.length > 0);
+        allImageUrls = data.images;
 
-        // 打乱数组顺序，让多组图片混合显示
+        // 打乱数组顺序
         allImageUrls.sort(() => Math.random() - 0.5);
 
         initColumns(); // 初始化分列
@@ -175,12 +167,14 @@ const copyLinkBtn = document.getElementById('copy-link-btn');
 const downloadBtn = document.getElementById('download-btn');
 
 let currentImageUrl = ''; // 存储当前查看的图片URL
+let currentImageIndex = -1; // 存储当前查看的图片索引
 
 // 为所有图片添加点击事件，打开 Lightbox
 function attachLightboxListener(img) {
     img.addEventListener('click', function () {
         const imageUrl = this.getAttribute('data-src') || this.src;
-        openLightbox(imageUrl);
+        const index = allImageUrls.indexOf(imageUrl);
+        openLightbox(imageUrl, index);
     });
 
     // 添加鼠标指针变化
@@ -282,11 +276,41 @@ function copyTextToClipboard(text) {
 }
 
 // 打开 Lightbox
-function openLightbox(imageUrl) {
+function openLightbox(imageUrl, index) {
     currentImageUrl = imageUrl;
+    currentImageIndex = index;
     lightboxImage.src = imageUrl;
     lightbox.classList.add('active');
     document.body.style.overflow = 'hidden'; // 禁止背景滚动
+    updateNavButtons();
+}
+
+// 更新导航按钮状态
+function updateNavButtons() {
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    if (prevBtn) prevBtn.style.display = currentImageIndex > 0 ? 'block' : 'none';
+    if (nextBtn) nextBtn.style.display = currentImageIndex < allImageUrls.length - 1 ? 'block' : 'none';
+}
+
+// 切换到上一张
+function showPrevImage() {
+    if (currentImageIndex > 0) {
+        currentImageIndex--;
+        currentImageUrl = allImageUrls[currentImageIndex];
+        lightboxImage.src = currentImageUrl;
+        updateNavButtons();
+    }
+}
+
+// 切换到下一张
+function showNextImage() {
+    if (currentImageIndex < allImageUrls.length - 1) {
+        currentImageIndex++;
+        currentImageUrl = allImageUrls[currentImageIndex];
+        lightboxImage.src = currentImageUrl;
+        updateNavButtons();
+    }
 }
 
 // 关闭 Lightbox
@@ -298,13 +322,6 @@ function closeLightbox() {
 // 点击遮罩层关闭 Lightbox
 lightboxOverlay.addEventListener('click', closeLightbox);
 
-// 按 ESC 键关闭 Lightbox
-document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') {
-        closeLightbox();
-    }
-});
-
 // 复制链接功能
 copyLinkBtn.addEventListener('click', function () {
     copyImageUrl(currentImageUrl, copyLinkBtn);
@@ -313,4 +330,21 @@ copyLinkBtn.addEventListener('click', function () {
 // 下载原图功能
 downloadBtn.addEventListener('click', function () {
     downloadImage(currentImageUrl);
+});
+
+// 上一张按钮
+document.getElementById('prev-btn').addEventListener('click', showPrevImage);
+
+// 下一张按钮
+document.getElementById('next-btn').addEventListener('click', showNextImage);
+
+// 按 ESC 键关闭 Lightbox，左右箭头切换
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+        closeLightbox();
+    } else if (e.key === 'ArrowLeft') {
+        showPrevImage();
+    } else if (e.key === 'ArrowRight') {
+        showNextImage();
+    }
 });
