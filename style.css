@@ -342,19 +342,14 @@ body {
 
     /* 移动端图片样式 */
     .lightbox-image {
-        max-height: 80vh;
+        max-height: 70vh;
         margin-bottom: 0;
         border-radius: 0;
     }
 
-    /* 移动端功能按钮容器 - 固定底部，默认隐藏 */
+    /* 移动端功能按钮容器 - 图片下方 */
     .lightbox-controls {
         gap: 12px;
-        position: fixed;
-        bottom: 30px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 10;
         opacity: 0;
         transition: opacity 0.3s ease;
     }
