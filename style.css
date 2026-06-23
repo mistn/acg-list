@@ -282,6 +282,13 @@ body {
     justify-content: center;
 }
 
+/* 确保 SVG 图标绝对居中 */
+.glass-btn#prev-btn svg,
+.glass-btn#next-btn svg {
+    display: block; /* 消除 inline 基线偏移 */
+    flex-shrink: 0; /* 防止被压缩 */
+}
+
 /* 功能按钮 - 圆形 */
 .glass-btn#copy-link-btn,
 .glass-btn#download-btn {
