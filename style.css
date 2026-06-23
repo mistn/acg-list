@@ -200,6 +200,22 @@ body {
     z-index: 1;
 }
 
+/* 左右切换按钮 - 固定屏幕两侧 */
+.lightbox-nav-btn {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+}
+
+#prev-btn {
+    left: 20px;
+}
+
+#next-btn {
+    right: 20px;
+}
+
 /* Lightbox 内容容器 */
 .lightbox-content {
     position: relative;
@@ -208,19 +224,9 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    max-width: 90%;
+    max-width: calc(100% - 140px);
     max-height: 90vh;
     animation: zoomIn 0.3s ease-out;
-}
-
-/* Lightbox 图片包裹层 - 用于定位左右按钮 */
-.lightbox-image-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 30px;
 }
 
 /* Lightbox 图片 */
@@ -230,11 +236,7 @@ body {
     object-fit: contain;
     border-radius: 12px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-}
-
-/* 左右切换按钮 */
-.lightbox-nav-btn {
-    flex-shrink: 0;
+    margin-bottom: 30px;
 }
 
 /* 控制按钮容器 */
@@ -371,13 +373,9 @@ body {
         display: none;
     }
 
-    .lightbox-image-wrapper {
-        gap: 8px;
-        margin-bottom: 15px;
-    }
-
     .lightbox-image {
-        max-height: 60vh;
+        max-height: 65vh;
+        margin-bottom: 15px;
     }
 
     .lightbox-controls {
@@ -389,7 +387,7 @@ body {
         font-size: 13px;
     }
 
-    /* 箭头按钮在移动端保持圆形 */
+    /* 箭头按钮在移动端 */
     .glass-btn#prev-btn,
     .glass-btn#next-btn {
         width: 40px;
@@ -397,9 +395,17 @@ body {
         font-size: 24px;
     }
 
+    #prev-btn {
+        left: 10px;
+    }
+
+    #next-btn {
+        right: 10px;
+    }
+
     .lightbox-content {
-        max-width: 95%;
-        padding: 0 10px;
+        max-width: calc(100% - 100px);
+        max-height: 85vh;
     }
 }
 
