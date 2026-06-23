@@ -347,7 +347,7 @@ body {
         border-radius: 0;
     }
 
-    /* 移动端功能按钮容器 - 固定底部 */
+    /* 移动端功能按钮容器 - 固定底部，默认隐藏 */
     .lightbox-controls {
         gap: 12px;
         position: fixed;
@@ -355,14 +355,13 @@ body {
         left: 50%;
         transform: translateX(-50%);
         z-index: 10;
-        opacity: 1;
+        opacity: 0;
         transition: opacity 0.3s ease;
     }
 
-    /* 移动端功能按钮 - 默认隐藏，点击显示 */
-    .lightbox-controls.hidden {
-        opacity: 0;
-        pointer-events: none;
+    /* 移动端功能按钮 - 点击显示 */
+    .lightbox-controls.visible {
+        opacity: 1;
     }
 
     /* 移动端功能按钮尺寸 */

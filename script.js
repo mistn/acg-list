@@ -247,9 +247,9 @@ function openLightbox(imageUrl, index) {
     document.body.style.overflow = 'hidden';
     updateNavButtons();
 
-    // 移动端：重置功能按钮状态
+    // 移动端：重置功能按钮状态（默认隐藏）
     if (isMobile()) {
-        DOM.lightboxControls.classList.remove('hidden');
+        DOM.lightboxControls.classList.remove('visible');
     }
 }
 
@@ -342,7 +342,7 @@ function handleSwipe() {
 
 DOM.lightboxImage.addEventListener('click', () => {
     if (!isMobile()) return;
-    DOM.lightboxControls.classList.toggle('hidden');
+    DOM.lightboxControls.classList.toggle('visible');
 });
 
 // ==================== 鼠标光效 ====================
