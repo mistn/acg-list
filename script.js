@@ -151,6 +151,12 @@ function lazyLoadImage(img) {
                     targetImg.style.opacity = 1;
                 };
 
+                // 图片加载失败时显示占位
+                targetImg.onerror = () => {
+                    targetImg.classList.add('error');
+                    targetImg.style.opacity = 1;
+                };
+
                 observer.unobserve(targetImg); // 图片加载完毕后停止观察
             }
         });
