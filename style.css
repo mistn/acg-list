@@ -350,6 +350,7 @@ body {
     /* 移动端功能按钮容器 - 图片下方 */
     .lightbox-controls {
         gap: 12px;
+        margin-top: 20px;
         opacity: 0;
         transition: opacity 0.3s ease;
     }
