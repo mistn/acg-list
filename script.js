@@ -98,6 +98,7 @@ function loadMoreImages() {
 
         const img = document.createElement('img');
         img.setAttribute('data-src', url);
+        img.setAttribute('loading', 'lazy'); // 原生懒加载
         img.alt = 'Image';
 
         imgDiv.appendChild(glow);
