@@ -282,11 +282,22 @@ body {
     justify-content: center;
 }
 
-/* 确保 SVG 图标绝对居中 */
+/* SVG 图标基础样式 */
 .glass-btn#prev-btn svg,
 .glass-btn#next-btn svg {
-    display: block; /* 消除 inline 基线偏移 */
-    flex-shrink: 0; /* 防止被压缩 */
+    display: block;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+/* 光学校准：补偿箭头视觉重心偏移 */
+.glass-btn#prev-btn svg {
+    transform: translateX(1px); /* 左箭头尖角在左，视觉重心偏左，向右补偿 */
+}
+
+.glass-btn#next-btn svg {
+    transform: translateX(-1px); /* 右箭头尖角在右，视觉重心偏右，向左补偿 */
 }
 
 /* 功能按钮 - 圆形 */
