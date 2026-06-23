@@ -336,7 +336,7 @@ body {
     }
 
     /* 隐藏左右切换按钮 - 移动端使用滑动切换 */
-    .lightbox-nav-btn {
+    .glass-btn.lightbox-nav-btn {
         display: none;
     }
 
