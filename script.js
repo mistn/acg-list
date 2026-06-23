@@ -1,19 +1,45 @@
-// script.js
+// ============================================================
+// 二次元图片瀑布流 - 主脚本
+// ============================================================
 
-const container = document.getElementById('image-container');
+// ==================== 配置项 ====================
+const CONFIG = {
+    dataUrl: 'images.json',  // 图片数据源
+    batchSize: 24,           // 每批加载图片数量
+    lazyLoadMargin: '1000px', // 懒加载提前量
+    infiniteScrollMargin: '1500px' // 无限滚动提前量
+};
 
-// 数据源：本地 JSON 文件
-const dataUrl = 'images.json';
+// ==================== DOM 元素 ====================
+const DOM = {
+    container: document.getElementById('image-container'),
+    loading: document.getElementById('loading'),
+    lightbox: document.getElementById('lightbox'),
+    lightboxImage: document.getElementById('lightbox-image'),
+    lightboxOverlay: document.querySelector('.lightbox-overlay'),
+    copyLinkBtn: document.getElementById('copy-link-btn'),
+    downloadBtn: document.getElementById('download-btn'),
+    prevBtn: document.getElementById('prev-btn'),
+    nextBtn: document.getElementById('next-btn'),
+    backToTopBtn: document.getElementById('back-to-top')
+};
 
-let allImageUrls = [];
-let currentIndex = 0;
-const batchSize = 24; // 每次加载 24 个图片DOM，保证每次能铺满好几排
+// ==================== 状态变量 ====================
+let state = {
+    allImageUrls: [],      // 所有图片 URL
+    currentIndex: 0,       // 当前加载到的索引
+    currentImageUrl: '',   // 当前 Lightbox 显示的图片 URL
+    currentImageIndex: -1, // 当前 Lightbox 显示的图片索引
+    colNum: 0,             // 当前列数
+    columns: [],           // 列元素数组
+    imageElements: []      // 所有图片 DOM 元素
+};
 
-let colNum = getColNum();
-let columns = [];
-let imageElements = []; // 存储所有的图片DOM元素，用于响应式重排
+// ==================== 瀑布流布局 ====================
 
-// 获取当前屏幕宽度对应的列数
+/**
+ * 获取当前屏幕宽度对应的列数
+ */
 function getColNum() {
     if (window.innerWidth > 1200) return 4;
     if (window.innerWidth > 800) return 3;
@@ -21,108 +47,151 @@ function getColNum() {
     return 1;
 }
 
-// 初始化瀑布流的列（显式Flex列布局解决原生CSS多列的闪屏/回流问题）
+/**
+ * 初始化瀑布流列
+ */
 function initColumns() {
-    container.innerHTML = '';
-    columns = [];
-    for (let i = 0; i < colNum; i++) {
+    DOM.container.innerHTML = '';
+    state.columns = [];
+    for (let i = 0; i < state.colNum; i++) {
         const col = document.createElement('div');
         col.classList.add('column');
-        container.appendChild(col);
-        columns.push(col);
+        DOM.container.appendChild(col);
+        state.columns.push(col);
     }
 }
 
-// 窗口尺寸改变时，如果列数发生变化，则重新分配图片
+/**
+ * 窗口尺寸改变时重新分配图片
+ */
 window.addEventListener('resize', () => {
     const newColNum = getColNum();
-    if (newColNum !== colNum) {
-        colNum = newColNum;
+    if (newColNum !== state.colNum) {
+        state.colNum = newColNum;
         initColumns();
-        // 按照轮询的方式将已有元素重新分配到新列中
-        imageElements.forEach((el, index) => {
-            columns[index % colNum].appendChild(el);
+        state.imageElements.forEach((el, index) => {
+            state.columns[index % state.colNum].appendChild(el);
         });
     }
 });
 
-// Fetch data from local JSON file
+// ==================== 图片加载 ====================
+
+/**
+ * 从本地 JSON 文件获取图片数据
+ */
 async function fetchImages() {
     try {
-        const response = await fetch(dataUrl);
+        const response = await fetch(CONFIG.dataUrl);
         const data = await response.json();
 
-        allImageUrls = data.images;
+        state.allImageUrls = data.images;
+        state.allImageUrls.sort(() => Math.random() - 0.5);
 
-        // 打乱数组顺序
-        allImageUrls.sort(() => Math.random() - 0.5);
-
-        initColumns(); // 初始化分列
-
-        // 初次只加载部分 DOM
+        state.colNum = getColNum();
+        initColumns();
         loadMoreImages();
-
-        // 隐藏加载动画
-        const loading = document.getElementById('loading');
-        if (loading) {
-            loading.classList.add('hidden');
-            setTimeout(() => loading.remove(), 500);
-        }
-
-        // 监听滚动到底部，继续加载更多 DOM
+        hideLoading();
         setupInfiniteScroll();
-
     } catch (error) {
-        console.error('Error fetching images:', error);
+        console.error('获取图片数据失败:', error);
     }
 }
 
-// 加载更多图片 DOM
+/**
+ * 加载更多图片到 DOM
+ */
 function loadMoreImages() {
-    if (currentIndex >= allImageUrls.length) {
-        // 当数组加载完毕时，重置索引，并再次打乱数组顺序，实现真正的无限滚动
-        currentIndex = 0;
-        allImageUrls.sort(() => Math.random() - 0.5);
+    if (state.currentIndex >= state.allImageUrls.length) {
+        state.currentIndex = 0;
+        state.allImageUrls.sort(() => Math.random() - 0.5);
     }
 
-    const endIndex = Math.min(currentIndex + batchSize, allImageUrls.length);
+    const endIndex = Math.min(state.currentIndex + CONFIG.batchSize, state.allImageUrls.length);
 
-    for (let i = currentIndex; i < endIndex; i++) {
-        const url = allImageUrls[i];
-
-        const imgDiv = document.createElement('div');
-        imgDiv.classList.add('image-item');
-
-        const glow = document.createElement('div');
-        glow.classList.add('image-glow');
-
-        const img = document.createElement('img');
-        img.setAttribute('data-src', url);
-        img.setAttribute('loading', 'lazy'); // 原生懒加载
-        img.alt = 'Image';
-
-        imgDiv.appendChild(glow);
-        imgDiv.appendChild(img);
-        imageElements.push(imgDiv);
-
-        // 轮询：将图片依次添加到不同的列中（1, 2, 3, 4, 1, 2, 3, 4...）
-        // 实现真正的“从左到右、从上往下”加载效果，杜绝右侧空白或闪屏
-        columns[i % colNum].appendChild(imgDiv);
-
-        // 为每个图片绑定懒加载观察器
-        lazyLoadImage(img);
-
-        // 为每个图片绑定 Lightbox 点击事件
-        attachLightboxListener(img);
-
-        // 为每个图片绑定鼠标光效
-        attachImageGlowEffect(imgDiv, glow);
+    for (let i = state.currentIndex; i < endIndex; i++) {
+        const url = state.allImageUrls[i];
+        const imgDiv = createImageElement(url, i);
+        state.imageElements.push(imgDiv);
+        state.columns[i % state.colNum].appendChild(imgDiv);
     }
 
-    currentIndex = endIndex;
+    state.currentIndex = endIndex;
 }
 
-// 设置无限滚动（滚动到底部时触发 loadMoreImages）
+/**
+ * 创建图片 DOM 元素
+ */
+function createImageElement(url, index) {
+    const imgDiv = document.createElement('div');
+    imgDiv.classList.add('image-item');
+
+    const glow = document.createElement('div');
+    glow.classList.add('image-glow');
+
+    const img = document.createElement('img');
+    img.setAttribute('data-src', url);
+    img.setAttribute('loading', 'lazy');
+    img.alt = 'Image';
+
+    imgDiv.appendChild(glow);
+    imgDiv.appendChild(img);
+
+    // 绑定功能
+    lazyLoadImage(img);
+    attachLightboxListener(img);
+    attachImageGlowEffect(imgDiv, glow);
+
+    return imgDiv;
+}
+
+/**
+ * 隐藏加载动画
+ */
+function hideLoading() {
+    if (DOM.loading) {
+        DOM.loading.classList.add('hidden');
+        setTimeout(() => DOM.loading.remove(), 500);
+    }
+}
+
+// ==================== 懒加载 ====================
+
+/**
+ * 图片懒加载
+ */
+function lazyLoadImage(img) {
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const targetImg = entry.target;
+                targetImg.src = targetImg.getAttribute('data-src');
+
+                targetImg.onload = () => {
+                    targetImg.style.opacity = 1;
+                };
+
+                targetImg.onerror = () => {
+                    targetImg.classList.add('error');
+                    targetImg.style.opacity = 1;
+                };
+
+                observer.unobserve(targetImg);
+            }
+        });
+    }, {
+        rootMargin: CONFIG.lazyLoadMargin,
+        threshold: 0.1
+    });
+
+    observer.observe(img);
+}
+
+// ==================== 无限滚动 ====================
+
+/**
+ * 设置无限滚动
+ */
 function setupInfiniteScroll() {
     const sentinel = document.createElement('div');
     sentinel.id = 'sentinel';
@@ -133,149 +202,131 @@ function setupInfiniteScroll() {
             loadMoreImages();
         }
     }, {
-        rootMargin: '1500px' // 提前1500px触发加载下一批DOM，增加极大的提前量
+        rootMargin: CONFIG.infiniteScrollMargin
     });
 
     observer.observe(sentinel);
 }
 
-// 懒加载功能（仅当图片接近视口时才请求真实的图片资源）
-function lazyLoadImage(img) {
-    const observer = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const targetImg = entry.target;
-                targetImg.src = targetImg.getAttribute('data-src'); // 替换成真实图片链接
+// ==================== Lightbox 灯箱 ====================
 
-                // 图片加载完成后加上渐显效果
-                targetImg.onload = () => {
-                    targetImg.style.opacity = 1;
-                };
-
-                // 图片加载失败时显示占位
-                targetImg.onerror = () => {
-                    targetImg.classList.add('error');
-                    targetImg.style.opacity = 1;
-                };
-
-                observer.unobserve(targetImg); // 图片加载完毕后停止观察
-            }
-        });
-    }, {
-        rootMargin: '1000px', // 提前1000px开始加载真实图片资源，确保进入视口前已经加载完毕
-        threshold: 0.1
-    });
-
-    observer.observe(img);
-}
-
-// 调用函数来获取并显示图片
-fetchImages();
-
-// ========== 返回顶部按钮 ==========
-const backToTopBtn = document.getElementById('back-to-top');
-
-// 监听滚动事件，显示/隐藏返回顶部按钮
-window.addEventListener('scroll', () => {
-    if (window.scrollY > 500) {
-        backToTopBtn.classList.add('visible');
-    } else {
-        backToTopBtn.classList.remove('visible');
-    }
-});
-
-// 点击返回顶部
-backToTopBtn.addEventListener('click', () => {
-    window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-    });
-});
-
-// ========== Lightbox 功能 ==========
-
-const lightbox = document.getElementById('lightbox');
-const lightboxImage = document.getElementById('lightbox-image');
-const lightboxOverlay = document.querySelector('.lightbox-overlay');
-const copyLinkBtn = document.getElementById('copy-link-btn');
-const downloadBtn = document.getElementById('download-btn');
-
-let currentImageUrl = ''; // 存储当前查看的图片URL
-let currentImageIndex = -1; // 存储当前查看的图片索引
-
-// 为所有图片添加点击事件，打开 Lightbox
+/**
+ * 为图片绑定 Lightbox 点击事件
+ */
 function attachLightboxListener(img) {
     img.addEventListener('click', function () {
         const imageUrl = this.getAttribute('data-src') || this.src;
-        const index = allImageUrls.indexOf(imageUrl);
+        const index = state.allImageUrls.indexOf(imageUrl);
         openLightbox(imageUrl, index);
     });
-
-    // 添加鼠标指针变化
     img.style.cursor = 'pointer';
 }
 
-// 为图片卡片绑定鼠标跟随光效
+/**
+ * 打开 Lightbox
+ */
+function openLightbox(imageUrl, index) {
+    state.currentImageUrl = imageUrl;
+    state.currentImageIndex = index;
+    DOM.lightboxImage.src = imageUrl;
+    DOM.lightbox.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    updateNavButtons();
+}
+
+/**
+ * 关闭 Lightbox
+ */
+function closeLightbox() {
+    DOM.lightbox.classList.remove('active');
+    document.body.style.overflow = 'auto';
+}
+
+/**
+ * 切换到上一张图片
+ */
+function showPrevImage() {
+    if (state.currentImageIndex > 0) {
+        state.currentImageIndex--;
+        state.currentImageUrl = state.allImageUrls[state.currentImageIndex];
+        DOM.lightboxImage.src = state.currentImageUrl;
+        updateNavButtons();
+    }
+}
+
+/**
+ * 切换到下一张图片
+ */
+function showNextImage() {
+    if (state.currentImageIndex < state.allImageUrls.length - 1) {
+        state.currentImageIndex++;
+        state.currentImageUrl = state.allImageUrls[state.currentImageIndex];
+        DOM.lightboxImage.src = state.currentImageUrl;
+        updateNavButtons();
+    }
+}
+
+/**
+ * 更新导航按钮显示状态
+ */
+function updateNavButtons() {
+    DOM.prevBtn.style.display = state.currentImageIndex > 0 ? 'block' : 'none';
+    DOM.nextBtn.style.display = state.currentImageIndex < state.allImageUrls.length - 1 ? 'block' : 'none';
+}
+
+// Lightbox 事件监听
+DOM.lightboxOverlay.addEventListener('click', closeLightbox);
+DOM.prevBtn.addEventListener('click', showPrevImage);
+DOM.nextBtn.addEventListener('click', showNextImage);
+DOM.copyLinkBtn.addEventListener('click', () => copyImageUrl(state.currentImageUrl, DOM.copyLinkBtn));
+DOM.downloadBtn.addEventListener('click', () => downloadImage(state.currentImageUrl));
+
+// 键盘快捷键
+document.addEventListener('keydown', (e) => {
+    if (!DOM.lightbox.classList.contains('active')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') showPrevImage();
+    if (e.key === 'ArrowRight') showNextImage();
+});
+
+// ==================== 鼠标光效 ====================
+
+/**
+ * 为图片卡片绑定鼠标跟随光效
+ */
 function attachImageGlowEffect(card, glow) {
     if (!card || !glow) return;
 
-    card.addEventListener('mousemove', function (event) {
+    card.addEventListener('mousemove', (event) => {
         const rect = card.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-
-        glow.style.left = `${x}px`;
-        glow.style.top = `${y}px`;
+        glow.style.left = `${event.clientX - rect.left}px`;
+        glow.style.top = `${event.clientY - rect.top}px`;
     });
 
-    card.addEventListener('mouseleave', function () {
+    card.addEventListener('mouseleave', () => {
         glow.style.left = '50%';
         glow.style.top = '50%';
     });
 }
 
-// 统一处理复制图片链接
+// ==================== 剪贴板操作 ====================
+
+/**
+ * 复制图片链接
+ */
 function copyImageUrl(imageUrl, button) {
     if (!imageUrl) return;
 
     copyTextToClipboard(imageUrl).then(() => {
-        if (button) {
-            showButtonFeedback(button, '✓ 已复制！');
-        }
+        if (button) showButtonFeedback(button, '✓ 已复制！');
     }).catch(() => {
         alert('复制失败，请重试');
     });
 }
 
-// 统一处理下载图片
-function downloadImage(imageUrl) {
-    if (!imageUrl) return;
-
-    const link = document.createElement('a');
-    link.href = imageUrl;
-    link.download = `image-${Date.now()}.jpg`;
-    link.target = '_blank';
-    link.rel = 'noopener';
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-// 统一处理按钮反馈文案
-function showButtonFeedback(button, feedbackText) {
-    const originalText = button.getAttribute('data-original-text') || button.textContent;
-    button.setAttribute('data-original-text', originalText);
-    button.textContent = feedbackText;
-    button.disabled = true;
-
-    setTimeout(() => {
-        button.textContent = originalText;
-        button.disabled = false;
-    }, 2000);
-}
-
-// 复制文本，优先使用现代 API，失败时回退到传统方案
+/**
+ * 复制文本到剪贴板
+ */
 function copyTextToClipboard(text) {
     if (navigator.clipboard && window.isSecureContext) {
         return navigator.clipboard.writeText(text);
@@ -296,12 +347,7 @@ function copyTextToClipboard(text) {
         try {
             const copied = document.execCommand('copy');
             document.body.removeChild(textarea);
-
-            if (copied) {
-                resolve();
-            } else {
-                reject();
-            }
+            copied ? resolve() : reject();
         } catch (error) {
             document.body.removeChild(textarea);
             reject(error);
@@ -309,76 +355,52 @@ function copyTextToClipboard(text) {
     });
 }
 
-// 打开 Lightbox
-function openLightbox(imageUrl, index) {
-    currentImageUrl = imageUrl;
-    currentImageIndex = index;
-    lightboxImage.src = imageUrl;
-    lightbox.classList.add('active');
-    document.body.style.overflow = 'hidden'; // 禁止背景滚动
-    updateNavButtons();
+/**
+ * 按钮反馈动画
+ */
+function showButtonFeedback(button, feedbackText) {
+    const originalText = button.getAttribute('data-original-text') || button.textContent;
+    button.setAttribute('data-original-text', originalText);
+    button.textContent = feedbackText;
+    button.disabled = true;
+
+    setTimeout(() => {
+        button.textContent = originalText;
+        button.disabled = false;
+    }, 2000);
 }
 
-// 更新导航按钮状态
-function updateNavButtons() {
-    const prevBtn = document.getElementById('prev-btn');
-    const nextBtn = document.getElementById('next-btn');
-    if (prevBtn) prevBtn.style.display = currentImageIndex > 0 ? 'block' : 'none';
-    if (nextBtn) nextBtn.style.display = currentImageIndex < allImageUrls.length - 1 ? 'block' : 'none';
+// ==================== 下载功能 ====================
+
+/**
+ * 下载图片
+ */
+function downloadImage(imageUrl) {
+    if (!imageUrl) return;
+
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    link.download = `image-${Date.now()}.jpg`;
+    link.target = '_blank';
+    link.rel = 'noopener';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
-// 切换到上一张
-function showPrevImage() {
-    if (currentImageIndex > 0) {
-        currentImageIndex--;
-        currentImageUrl = allImageUrls[currentImageIndex];
-        lightboxImage.src = currentImageUrl;
-        updateNavButtons();
-    }
-}
+// ==================== 返回顶部 ====================
 
-// 切换到下一张
-function showNextImage() {
-    if (currentImageIndex < allImageUrls.length - 1) {
-        currentImageIndex++;
-        currentImageUrl = allImageUrls[currentImageIndex];
-        lightboxImage.src = currentImageUrl;
-        updateNavButtons();
-    }
-}
-
-// 关闭 Lightbox
-function closeLightbox() {
-    lightbox.classList.remove('active');
-    document.body.style.overflow = 'auto'; // 恢复背景滚动
-}
-
-// 点击遮罩层关闭 Lightbox
-lightboxOverlay.addEventListener('click', closeLightbox);
-
-// 复制链接功能
-copyLinkBtn.addEventListener('click', function () {
-    copyImageUrl(currentImageUrl, copyLinkBtn);
+/**
+ * 返回顶部按钮
+ */
+DOM.backToTopBtn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
-// 下载原图功能
-downloadBtn.addEventListener('click', function () {
-    downloadImage(currentImageUrl);
+window.addEventListener('scroll', () => {
+    DOM.backToTopBtn.classList.toggle('visible', window.scrollY > 500);
 });
 
-// 上一张按钮
-document.getElementById('prev-btn').addEventListener('click', showPrevImage);
-
-// 下一张按钮
-document.getElementById('next-btn').addEventListener('click', showNextImage);
-
-// 按 ESC 键关闭 Lightbox，左右箭头切换
-document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') {
-        closeLightbox();
-    } else if (e.key === 'ArrowLeft') {
-        showPrevImage();
-    } else if (e.key === 'ArrowRight') {
-        showNextImage();
-    }
-});
+// ==================== 初始化 ====================
+fetchImages();
