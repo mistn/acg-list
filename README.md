@@ -2,6 +2,8 @@
 
 一个简洁的二次元图片瀑布流展示网站，支持懒加载、无限滚动、图片灯箱等功能。
 
+> 本项目基于 [Yeqingky/acg-list](https://github.com/Yeqingky/acg-list) 修改，感谢原作者。
+
 ## 功能特性
 
 - 瀑布流布局，响应式设计
