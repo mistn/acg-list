@@ -62,6 +62,13 @@ async function fetchImages() {
         // 初次只加载部分 DOM
         loadMoreImages();
 
+        // 隐藏加载动画
+        const loading = document.getElementById('loading');
+        if (loading) {
+            loading.classList.add('hidden');
+            setTimeout(() => loading.remove(), 500);
+        }
+
         // 监听滚动到底部，继续加载更多 DOM
         setupInfiniteScroll();
 
