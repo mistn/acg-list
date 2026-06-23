@@ -212,6 +212,23 @@ body {
     top: 50%;
     transform: translateY(-50%);
     z-index: 10;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.lightbox-nav-btn:hover {
+    background: rgba(0, 0, 0, 0.5);
+    border-color: rgba(255, 255, 255, 0.4);
 }
 
 #prev-btn { left: 20px; }
@@ -268,36 +285,6 @@ body {
     transform: translateY(0);
     user-select: none;
     -webkit-user-select: none;
-}
-
-/* 左右箭头按钮 - 圆形 */
-.glass-btn#prev-btn,
-.glass-btn#next-btn {
-    width: 48px;
-    height: 48px;
-    padding: 0;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* SVG 图标基础样式 */
-.glass-btn#prev-btn svg,
-.glass-btn#next-btn svg {
-    display: block;
-    width: 24px;
-    height: 24px;
-    flex-shrink: 0;
-}
-
-/* 光学校准：补偿箭头视觉重心偏移 */
-.glass-btn#prev-btn svg {
-    transform: translateX(1px); /* 左箭头尖角在左，视觉重心偏左，向右补偿 */
-}
-
-.glass-btn#next-btn svg {
-    transform: translateX(-1px); /* 右箭头尖角在右，视觉重心偏右，向左补偿 */
 }
 
 /* 功能按钮 - 圆形 */
