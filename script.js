@@ -374,7 +374,7 @@ function copyImageUrl(imageUrl, button) {
     if (!imageUrl) return;
 
     copyTextToClipboard(imageUrl).then(() => {
-        if (button) showButtonFeedback(button, '已复制');
+        if (button) showButtonFeedback(button);
     }).catch(() => {
         alert('复制失败，请重试');
     });
@@ -412,11 +412,13 @@ function copyTextToClipboard(text) {
 }
 
 /**
- * 按钮反馈动画
+ * 按钮反馈动画 - 显示勾号
  */
-function showButtonFeedback(button, feedbackText) {
+function showButtonFeedback(button) {
     const originalHTML = button.innerHTML;
-    button.innerHTML = `<span style="font-size: 12px;">${feedbackText}</span>`;
+    button.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 12L10 17L19 7"/>
+    </svg>`;
     button.disabled = true;
 
     setTimeout(() => {
