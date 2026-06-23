@@ -224,6 +224,13 @@ body {
     align-items: center;
     justify-content: center;
     transition: all 0.3s ease;
+    padding: 0;
+}
+
+/* SVG 图标居中 */
+.lightbox-nav-btn svg {
+    display: block;
+    margin: auto;
 }
 
 .lightbox-nav-btn:hover {
