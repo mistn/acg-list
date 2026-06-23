@@ -289,6 +289,39 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight') showNextImage();
 });
 
+// ==================== 移动端触摸滑动 ====================
+
+let touchStartX = 0;
+let touchEndX = 0;
+const SWIPE_THRESHOLD = 50; // 滑动阈值
+
+DOM.lightboxImage.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+}, { passive: true });
+
+DOM.lightboxImage.addEventListener('touchend', (e) => {
+    touchEndX = e.changedTouches[0].screenX;
+    handleSwipe();
+});
+
+function handleSwipe() {
+    const diff = touchStartX - touchEndX;
+    if (Math.abs(diff) < SWIPE_THRESHOLD) return;
+    if (diff > 0) {
+        showNextImage(); // 左滑下一张
+    } else {
+        showPrevImage(); // 右滑上一张
+    }
+}
+
+// ==================== 移动端点击屏幕显示/隐藏功能按钮 ====================
+
+DOM.lightboxImage.addEventListener('click', () => {
+    if (window.innerWidth > 768) return; // 只在移动端生效
+    const controls = document.querySelector('.lightbox-controls');
+    controls.classList.toggle('hidden');
+});
+
 // ==================== 鼠标光效 ====================
 
 /**

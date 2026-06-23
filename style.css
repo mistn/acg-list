@@ -373,13 +373,32 @@ body {
         display: none;
     }
 
+    /* 移动端隐藏左右按钮 */
+    .lightbox-nav-btn {
+        display: none;
+    }
+
     .lightbox-image {
-        max-height: 65vh;
-        margin-bottom: 15px;
+        max-height: 80vh;
+        margin-bottom: 0;
+        border-radius: 0;
     }
 
     .lightbox-controls {
         gap: 12px;
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+    }
+
+    /* 隐藏功能按钮状态 */
+    .lightbox-controls.hidden {
+        opacity: 0;
+        pointer-events: none;
     }
 
     .glass-btn {
@@ -387,25 +406,10 @@ body {
         font-size: 13px;
     }
 
-    /* 箭头按钮在移动端 */
-    .glass-btn#prev-btn,
-    .glass-btn#next-btn {
-        width: 40px;
-        height: 40px;
-        font-size: 24px;
-    }
-
-    #prev-btn {
-        left: 10px;
-    }
-
-    #next-btn {
-        right: 10px;
-    }
-
     .lightbox-content {
-        max-width: calc(100% - 100px);
-        max-height: 85vh;
+        max-width: 100%;
+        max-height: 100vh;
+        padding: 0;
     }
 }
 
