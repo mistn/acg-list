@@ -171,6 +171,26 @@ function lazyLoadImage(img) {
 // 调用函数来获取并显示图片
 fetchImages();
 
+// ========== 返回顶部按钮 ==========
+const backToTopBtn = document.getElementById('back-to-top');
+
+// 监听滚动事件，显示/隐藏返回顶部按钮
+window.addEventListener('scroll', () => {
+    if (window.scrollY > 500) {
+        backToTopBtn.classList.add('visible');
+    } else {
+        backToTopBtn.classList.remove('visible');
+    }
+});
+
+// 点击返回顶部
+backToTopBtn.addEventListener('click', () => {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+});
+
 // ========== Lightbox 功能 ==========
 
 const lightbox = document.getElementById('lightbox');
