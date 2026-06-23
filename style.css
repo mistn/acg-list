@@ -265,10 +265,12 @@ body {
     width: 48px;
     height: 48px;
     padding: 0;
-    font-size: 28px;
-    line-height: 48px;
-    text-align: center;
+    font-size: 32px;
     border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
 }
 
 /* 按钮悬停效果 - iOS 液态玻璃动画 */
