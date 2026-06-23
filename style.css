@@ -281,12 +281,22 @@ body {
     width: 48px;
     height: 48px;
     padding: 0;
-    font-size: 32px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    line-height: 1;
+}
+
+/* 功能按钮样式 */
+.glass-btn#copy-link-btn,
+.glass-btn#download-btn {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* 按钮悬停效果 - iOS 液态玻璃动画 */
@@ -395,15 +405,10 @@ body {
         transition: opacity 0.3s ease;
     }
 
-    /* 隐藏功能按钮状态 */
-    .lightbox-controls.hidden {
-        opacity: 0;
-        pointer-events: none;
-    }
-
-    .glass-btn {
-        padding: 10px 20px;
-        font-size: 13px;
+    .glass-btn#copy-link-btn,
+    .glass-btn#download-btn {
+        width: 44px;
+        height: 44px;
     }
 
     .lightbox-content {
@@ -411,6 +416,12 @@ body {
         max-height: 100vh;
         padding: 0;
     }
+}
+
+/* 隐藏功能按钮状态 - 移动端使用 */
+.lightbox-controls.hidden {
+    opacity: 0;
+    pointer-events: none;
 }
 
 /* 返回顶部按钮 */
