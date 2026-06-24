@@ -250,23 +250,28 @@ body {
     align-items: center;
     justify-content: center;
     max-width: calc(100% - 140px);
-    max-height: calc(100vh - 20px);
+    max-height: 90vh;
+    padding-bottom: 80px;
     animation: zoomIn 0.3s ease-out;
 }
 
 /* 灯箱图片 */
 .lightbox-image {
     max-width: 100%;
-    max-height: calc(100vh - 140px);
+    max-height: calc(90vh - 80px);
     object-fit: contain;
     border-radius: 12px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-    margin-bottom: 30px;
     touch-action: pan-y; /* 禁用双指放大，只允许垂直滚动 */
 }
 
-/* 功能按钮容器 */
+/* 功能按钮容器 - 位于 padding-bottom 预留区域 */
 .lightbox-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
     display: flex;
     gap: 20px;
     justify-content: center;
@@ -360,10 +365,9 @@ body {
         border-radius: 0;
     }
 
-    /* 移动端功能按钮容器 - 图片下方 */
+    /* 移动端功能按钮容器 */
     .lightbox-controls {
         gap: 12px;
-        margin-top: 20px;
         opacity: 0;
         transition: opacity 0.3s ease;
     }
